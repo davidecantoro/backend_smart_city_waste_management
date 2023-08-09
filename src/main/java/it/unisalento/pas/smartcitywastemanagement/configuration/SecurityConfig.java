@@ -1,10 +1,15 @@
 package it.unisalento.pas.smartcitywastemanagement.configuration;
 
+import it.unisalento.pas.smartcitywastemanagement.security.JwtAuthenticationFilter;
+import jakarta.servlet.Filter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
@@ -23,8 +29,21 @@ public class SecurityConfig {
     }
 
     @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
+        http.csrf().disable()
+                .authorizeRequests().requestMatchers("/api/users/authenticate").permitAll().
+                anyRequest().authenticated().and().sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+
+        /*
         return http.csrf().disable()
                 .authorizeHttpRequests()
                 .requestMatchers("/api/users/**").authenticated()
@@ -33,9 +52,15 @@ public class SecurityConfig {
                 .requestMatchers("/api/bins/**").permitAll()
                 .and()
                 .httpBasic(Customizer.withDefaults())
-                .build();
+                .build();*/
     }
 
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter();
+    }
+
+    /*
     @Bean
     public UserDetailsService userDetailsService() {
 
@@ -53,5 +78,5 @@ public class SecurityConfig {
 
         return new InMemoryUserDetailsManager(roberto, paolo);
 
-    }
+    }*/
 }

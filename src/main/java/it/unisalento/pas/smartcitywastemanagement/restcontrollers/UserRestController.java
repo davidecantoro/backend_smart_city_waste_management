@@ -1,11 +1,20 @@
 package it.unisalento.pas.smartcitywastemanagement.restcontrollers;
 
 import it.unisalento.pas.smartcitywastemanagement.domain.User;
+import it.unisalento.pas.smartcitywastemanagement.dto.AuthenticationResponseDTO;
+import it.unisalento.pas.smartcitywastemanagement.dto.LoginDTO;
 import it.unisalento.pas.smartcitywastemanagement.dto.UserDTO;
 import it.unisalento.pas.smartcitywastemanagement.exceptions.UserNotFoundException;
 import it.unisalento.pas.smartcitywastemanagement.repositories.UserRepository;
+import it.unisalento.pas.smartcitywastemanagement.security.JwtUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
 
@@ -13,12 +22,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static it.unisalento.pas.smartcitywastemanagement.configuration.SecurityConfig.passwordEncoder;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserRestController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtUtilities jwtUtilities;
 
     @RequestMapping(value="/", method= RequestMethod.GET)
     public List<UserDTO> getAll() {
@@ -32,6 +49,7 @@ public class UserRestController {
             userDTO.setCognome(user.getCognome());
             userDTO.setEmail(user.getEmail());
             userDTO.setEta(user.getEta());
+            userDTO.setUsername(user.getUsername());
             utenti.add(userDTO);
         }
 
@@ -80,11 +98,14 @@ public class UserRestController {
         newUser.setCognome(userDTO.getCognome());
         newUser.setEmail(userDTO.getEmail());
         newUser.setEta(userDTO.getEta());
+        newUser.setUsername(userDTO.getUsername());
+        newUser.setPassword(passwordEncoder().encode(userDTO.getPassword()));
 
         newUser = userRepository.save(newUser);
         System.out.println("L'ID DEL NUOVO UTENTE E': "+newUser.getId());
 
         userDTO.setId(newUser.getId());
+        userDTO.setPassword(null);
         return userDTO;
     }
 
@@ -106,4 +127,45 @@ public class UserRestController {
 
         return utenti;
     }
+
+    @RequestMapping(value="/authenticate", method = RequestMethod.POST)
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody LoginDTO loginDTO) {
+
+        Authentication authentication = authenticationManager.authenticate(
+          new UsernamePasswordAuthenticationToken(
+                  loginDTO.getUsername(),
+                  loginDTO.getPassword()
+          )
+        );
+
+        User user = userRepository.findByUsername(authentication.getName());
+
+        if(user == null) {
+            throw new UsernameNotFoundException(loginDTO.getUsername());
+        }
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        final String jwt = jwtUtilities.generateToken(user.getUsername());
+
+        return ResponseEntity.ok(new AuthenticationResponseDTO(jwt));
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
