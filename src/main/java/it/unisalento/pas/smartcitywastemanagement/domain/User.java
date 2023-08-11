@@ -3,34 +3,16 @@ package it.unisalento.pas.smartcitywastemanagement.domain;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document("user")
+@Document("user") //@Document(collection = "user") , user è il nome della tabella, cioe questa classe si mappa sulla collection user
 public class User {
 
-    @Id
+    @Id // chiave primaria
     String id;
     String nome;
     String cognome;
     String email;
     int eta;
 
-    String username;
-    String password;
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 
     public String getId() {
         return id;
