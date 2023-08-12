@@ -1,17 +1,29 @@
 package it.unisalento.pas.smartcitywastemanagement.restcontrollers;
 
 import it.unisalento.pas.smartcitywastemanagement.domain.User;
+//import it.unisalento.pas.smartcitywastemanagement.dto.AuthenticationResponseDTO;
+//import it.unisalento.pas.smartcitywastemanagement.dto.LoginDTO;
 import it.unisalento.pas.smartcitywastemanagement.dto.UserDTO;
 import it.unisalento.pas.smartcitywastemanagement.exceptions.UserNotFoundException;
 import it.unisalento.pas.smartcitywastemanagement.repositories.UserRepository;
+//import it.unisalento.pas.smartcitywastemanagement.security.JwtUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static it.unisalento.pas.smartcitywastemanagement.configuration.SecurityConfig.passwordEncoder;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -32,6 +44,7 @@ public class UserRestController {
             userDTO.setCognome(user.getCognome());
             userDTO.setEmail(user.getEmail());
             userDTO.setEta(user.getEta());
+            userDTO.setUsername(user.getUsername());
             utenti.add(userDTO);
         }
 
@@ -76,15 +89,18 @@ public class UserRestController {
     public UserDTO post(@RequestBody UserDTO userDTO) {
 
         User newUser = new User();
-        newUser.setNome(userDTO.getNome());
+        newUser.setNome(userDTO.getNome()); // DTO è usato per trasferire dati tipo dalla richeista post con posteman viene mandato al DTO
         newUser.setCognome(userDTO.getCognome());
         newUser.setEmail(userDTO.getEmail());
         newUser.setEta(userDTO.getEta());
+        newUser.setUsername(userDTO.getUsername());
+        newUser.setPassword(passwordEncoder().encode(userDTO.getPassword()));
 
         newUser = userRepository.save(newUser);
         System.out.println("L'ID DEL NUOVO UTENTE E': "+newUser.getId());
 
         userDTO.setId(newUser.getId());
+        userDTO.setPassword(null);
         return userDTO;
     }
 
@@ -107,3 +123,6 @@ public class UserRestController {
         return utenti;
     }
 }
+// form ---> userDto ----> user ---> mongodb (attraverso userRepository )
+//mongo db ---> user ( attraverso userRepository) ---> userDTO
+// userRepository accede al db con i metodi preimpostati, e restituisce un User perche nell'interfaccia abbiamo messo <User, String>

@@ -8,4 +8,6 @@ import java.util.List;
 public interface UserRepository extends MongoRepository<User, String> { // string è il tipo della chiave primaria cioe @Id
 
     public List<User> findByCognome(String cognome);
+
+    public User findByUsername(String username);
 }

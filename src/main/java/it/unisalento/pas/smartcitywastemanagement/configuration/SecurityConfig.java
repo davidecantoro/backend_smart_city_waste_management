@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .build();
     }
 
-    @Bean
+    /*@Bean
     public UserDetailsService userDetailsService() {
 
         UserDetails roberto = User.builder() // User non è la classe che abbiamo creato noi ma è un altra classe
@@ -53,5 +53,5 @@ public class SecurityConfig {
 
         return new InMemoryUserDetailsManager(roberto, paolo);
 
-    }
+    }*/
 }
