@@ -15,14 +15,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     UserRepository userRepository; // utilizziamo nell'api , lo stiamo utilizzando solo per la parte di autorizzazzione
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException { // controlla solo l'utente tramite username non anche la password
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException { // cerca l'utente tramite username,
 
-        final User user = userRepository.findByUsername(username); //bata definirlo nell'interfaccia , esiste gia come metodo
+        final User user = userRepository.findByUsername(username); //bata definirlo nell'interfaccia , esiste gia come metodo, viene fatto anche il controllo della passqord in automatico
         if(user == null) {
             throw new UsernameNotFoundException(username);
         }
 
-        UserDetails userDetails = org.springframework.security.core.userdetails.User.withUsername(user.getUsername()).password(user.getPassword()).roles("USER").build();
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.withUsername(user.getUsername()).password(user.getPassword()).roles("USER").build();//l'utente loggato è quelo preso dal db
 
         return userDetails;
     }

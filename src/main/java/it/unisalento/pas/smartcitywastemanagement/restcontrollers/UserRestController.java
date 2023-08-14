@@ -1,12 +1,12 @@
 package it.unisalento.pas.smartcitywastemanagement.restcontrollers;
 
 import it.unisalento.pas.smartcitywastemanagement.domain.User;
-//import it.unisalento.pas.smartcitywastemanagement.dto.AuthenticationResponseDTO;
-//import it.unisalento.pas.smartcitywastemanagement.dto.LoginDTO;
+import it.unisalento.pas.smartcitywastemanagement.dto.AuthenticationResponseDTO;
+import it.unisalento.pas.smartcitywastemanagement.dto.LoginDTO;
 import it.unisalento.pas.smartcitywastemanagement.dto.UserDTO;
 import it.unisalento.pas.smartcitywastemanagement.exceptions.UserNotFoundException;
 import it.unisalento.pas.smartcitywastemanagement.repositories.UserRepository;
-//import it.unisalento.pas.smartcitywastemanagement.security.JwtUtilities;
+import it.unisalento.pas.smartcitywastemanagement.security.JwtUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,13 +24,18 @@ import java.util.Optional;
 
 import static it.unisalento.pas.smartcitywastemanagement.configuration.SecurityConfig.passwordEncoder;
 
-
 @RestController
 @RequestMapping("/api/users")
 public class UserRestController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    private AuthenticationManager authenticationManager; // lo prende dal bean in SecurityConfig
+
+    @Autowired
+    private JwtUtilities jwtUtilities;
 
     @RequestMapping(value="/", method= RequestMethod.GET)
     public List<UserDTO> getAll() {
@@ -121,6 +126,30 @@ public class UserRestController {
         }
 
         return utenti;
+    }
+
+    @RequestMapping(value="/authenticate", method = RequestMethod.POST) // un utente invia le credenziali a /authenticate e viene creato il LoginDTO
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody LoginDTO loginDTO) {
+
+        Authentication authentication = authenticationManager.authenticate( // chiede al framework di spring se l'utente è autorizzato opp no, ancora non c'è nessuno token
+                new UsernamePasswordAuthenticationToken(
+                        loginDTO.getUsername(),
+                        loginDTO.getPassword()
+                )
+        );
+
+        User user = userRepository.findByUsername(authentication.getName());
+
+        if(user == null) {
+            throw new UsernameNotFoundException(loginDTO.getUsername());
+        }
+
+        SecurityContextHolder.getContext().setAuthentication(authentication); // l 'utente è autenticato correttamente e puo accedere alle risorse
+
+        final String jwt = jwtUtilities.generateToken(user.getUsername()); //generi il token
+
+        return ResponseEntity.ok(new AuthenticationResponseDTO(jwt)); // le volte successive mi passi il token e capisco chi sei
+
     }
 }
 // form ---> userDto ----> user ---> mongodb (attraverso userRepository )
