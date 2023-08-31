@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
@@ -49,23 +50,23 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf().disable()
-                .authorizeRequests().requestMatchers("/api/users/authenticate").permitAll(). //permetti a tutti di autenticarsi, di utilizzare l'api authenticate
+        http.cors().and().csrf().disable()
+                .authorizeRequests().requestMatchers("/api/users/authenticate","websocket/**").permitAll().
                 anyRequest().authenticated().and().sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);//ogni richiesta è indipendente l'una dall'altra,mi devo autorizzare sempre,due chiamate dallo stesso utente sono indipendenti
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
 
-
-        /*return http.csrf().disable()
+        /*
+        return http.csrf().disable()
                 .authorizeHttpRequests()
                 .requestMatchers("/api/users/**").authenticated()
                 .and()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/bins/**").permitAll() //endpoint che sono liberi
+                .requestMatchers("/api/bins/**").permitAll()
                 .and()
                 .httpBasic(Customizer.withDefaults())
-                .build(); */
+                .build();*/
     }
 
     @Bean
@@ -73,12 +74,13 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter();
     }
 
-    /*@Bean
+    /*
+    @Bean
     public UserDetailsService userDetailsService() {
 
-        UserDetails roberto = User.builder() // User non è la classe che abbiamo creato noi ma è un altra classe
+        UserDetails roberto = User.builder()
                 .username("roberto")
-                .password(passwordEncoder().encode("12345")) // la password codificata viene messa nell'header del pacchetto ip
+                .password(passwordEncoder().encode("12345"))
                 .roles("ADMIN")
                 .build();
 

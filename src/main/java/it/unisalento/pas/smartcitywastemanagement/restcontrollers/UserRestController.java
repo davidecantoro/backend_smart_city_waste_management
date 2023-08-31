@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import static it.unisalento.pas.smartcitywastemanagement.configuration.SecurityConfig.passwordEncoder;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/api/users")
 public class UserRestController {
@@ -50,9 +51,10 @@ public class UserRestController {
             userDTO.setEmail(user.getEmail());
             userDTO.setEta(user.getEta());
             userDTO.setUsername(user.getUsername());
+            userDTO.setRole(user.getRole());
             utenti.add(userDTO);
         }
-
+        System.out.println("ciao");
         return utenti;
     }
 
@@ -73,6 +75,7 @@ public class UserRestController {
             user1.setEmail(user.getEmail());
             user1.setEta(user.getEta());
             user1.setId(user.getId());
+            user1.setRole(user.getRole());
 
             return user1;
         }
@@ -98,6 +101,7 @@ public class UserRestController {
         newUser.setCognome(userDTO.getCognome());
         newUser.setEmail(userDTO.getEmail());
         newUser.setEta(userDTO.getEta());
+        newUser.setRole(userDTO.getRole());
         newUser.setUsername(userDTO.getUsername());
         newUser.setPassword(passwordEncoder().encode(userDTO.getPassword()));
 
@@ -122,16 +126,18 @@ public class UserRestController {
             userDTO.setCognome(user.getCognome());
             userDTO.setEmail(user.getEmail());
             userDTO.setEta(user.getEta());
+            userDTO.setRole(user.getRole());
             utenti.add(userDTO);
         }
 
         return utenti;
     }
 
-    @RequestMapping(value="/authenticate", method = RequestMethod.POST) // un utente invia le credenziali a /authenticate e viene creato il LoginDTO
+    @RequestMapping(value="/authenticate", method = RequestMethod.POST) // un utente invia le credenziali a /authenticate e viene creato il LoginDT
+
     public ResponseEntity<?> createAuthenticationToken(@RequestBody LoginDTO loginDTO) {
 
-        Authentication authentication = authenticationManager.authenticate( // chiede al framework di spring se l'utente è autorizzato opp no, ancora non c'è nessuno token
+        Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginDTO.getUsername(),
                         loginDTO.getPassword()
@@ -144,12 +150,13 @@ public class UserRestController {
             throw new UsernameNotFoundException(loginDTO.getUsername());
         }
 
-        SecurityContextHolder.getContext().setAuthentication(authentication); // l 'utente è autenticato correttamente e puo accedere alle risorse
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        final String jwt = jwtUtilities.generateToken(user.getUsername()); //generi il token
+        String role = user.getRole();
 
-        return ResponseEntity.ok(new AuthenticationResponseDTO(jwt)); // le volte successive mi passi il token e capisco chi sei
+        final String jwt = jwtUtilities.generateToken(user.getUsername(), role); // Aggiunto il ruolo nella generazione del token
 
+        return ResponseEntity.ok(new AuthenticationResponseDTO(jwt));
     }
 }
 // form ---> userDto ----> user ---> mongodb (attraverso userRepository )

@@ -7,6 +7,7 @@ public class UserDTO {
     private String cognome;
     private String email;
     private Integer eta;
+    private String role;
 
     private String username;
     private String password;
@@ -65,5 +66,13 @@ public class UserDTO {
 
     public void setEta(Integer eta) {
         this.eta = eta;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

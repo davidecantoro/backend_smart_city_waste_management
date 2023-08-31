@@ -12,6 +12,7 @@ public class User {
     String cognome;
     String email;
     int eta;
+    String role;
 
     String username;
     String password;
@@ -70,5 +71,13 @@ public class User {
 
     public void setEta(int eta) {
         this.eta = eta;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

@@ -33,6 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
+            System.out.println("JWT Token: " + jwt); // Stampa il token a terminale
             username = jwtUtilities.extractUsername(jwt);
         }
 
